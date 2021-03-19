@@ -1,0 +1,26 @@
+name: Python Tests
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pylint
+        pip3 install -r src/requirements.txt
+        pip3 install -r testing/requirements.txt
+    - name: Test with pytest
+      run: |
+        make test
+    - name: Pylint
+      run: |
+        make pylint
