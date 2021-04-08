@@ -6,6 +6,7 @@ import argparse
 import os
 import re
 from typing import Match, Optional
+from pathlib import Path
 
 from termcolor import colored
 
@@ -19,6 +20,8 @@ class BasicCmdNames:
     Pwd = 'pwd'
     Wc = 'wc'
     Grep = 'grep'
+    Cd = 'cd'
+    Ls = 'ls'
 
 
 class EchoCommand(IBasicCommand):
@@ -154,3 +157,81 @@ class GrepCommand(IBasicCommand):
         else:
             return self._grep(inp, out, namespace.pattern,
                               namespace.A, namespace.i, namespace.w)
+
+
+class CdCommand(IBasicCommand):
+    """Класс, представляющий команду shell-а cd."""
+
+    def get_name(self) -> str:
+        """Возвращает user-friendly имя команды."""
+        return BasicCmdNames.Cd
+
+    def run(self, args, inp, out, err, env) -> int:
+        """Инициирует выполнение команды.
+
+        Parameters:
+            args ([str]): Аргументы командной строки
+            inp (IO): Входной поток
+            out (IO): Выходной поток
+            err (IO): Поток ошибок
+            env (Environment): Текущее окружение
+
+        Returns:
+            int: Код возврата
+
+        """
+        path = args[0] if args else Path.home()
+        try:
+            os.chdir(path)
+        except OSError as e:
+            raise InterpreterException(e) from e
+        return 0
+
+
+class LsCommand(IBasicCommand):
+    """Класс, представляющий команду shell-а ls."""
+
+    def get_name(self) -> str:
+        """Возвращает user-friendly имя команды."""
+        return BasicCmdNames.Ls
+
+    def run(self, args, inp, out, err, env) -> int:
+        """Инициирует выполнение команды.
+
+        Parameters:
+            args ([str]): Аргументы командной строки
+            inp (IO): Входной поток
+            out (IO): Выходной поток
+            err (IO): Поток ошибок
+            env (Environment): Текущее окружение
+
+        Returns:
+            int: Код возврата
+
+        """
+        path = Path(args[0]) if args else Path('.')
+        try:
+            if path.is_file():
+                print(path.name, file=out)
+            else:
+                dir_content = [LsCommand._format(p) for p in path.iterdir()]
+                sorted(dir_content)
+                print('\n'.join(dir_content), file=out)
+            return 0
+        except OSError as e:
+            raise InterpreterException(e) from e
+
+    @staticmethod
+    def _format(p) -> str:
+        """Форматирует путь к текущему файлу или директории.
+
+        Parameters:
+            p (str): Путь к файлу или директории
+
+        Returns:
+            str: Отформатированный путь к файлу или директории
+
+        """
+        cropped_name = p.name
+        return colored(cropped_name, 'blue') \
+            if p.is_dir() else cropped_name

@@ -5,7 +5,7 @@
 from typing import IO
 
 from src.commands.basic_commands import WcCommand, GrepCommand
-from src.commands.basic_commands import EchoCommand, CatCommand, PwdCommand
+from src.commands.basic_commands import EchoCommand, CatCommand, PwdCommand, LsCommand, CdCommand
 from src.interpreter.base_interpreter import BaseInterpreter
 from src.lexer.lexer import SimpleLexer
 from src.parser.simple_parser import SimpleParser
@@ -22,7 +22,9 @@ class BashInterpreter(BaseInterpreter):
         CatCommand,
         PwdCommand,
         WcCommand,
-        GrepCommand
+        GrepCommand,
+        LsCommand,
+        CdCommand
     ]
 
     def __init__(self, inp: IO, out: IO, err: IO):
